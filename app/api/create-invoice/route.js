@@ -107,8 +107,13 @@ export async function POST(req) {
     const invoiceLineItems = [];
 
     for (const item of items) {
+      // Make sure we have a valid price ID
+      if (!item.stripePriceId && !item.productId) {
+        throw new Error(`Missing price or product ID for item: ${item.productName}`);
+      }
+      
       invoiceLineItems.push({
-        price: item.stripePriceId || item.productId,
+        price: item.stripePriceId,
         quantity: item.quantity,
         description: item.productName
       });
