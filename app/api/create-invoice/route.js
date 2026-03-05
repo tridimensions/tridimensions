@@ -173,15 +173,26 @@ export async function POST(req) {
         });
         
         console.log('✓ Discount created for customer:', customerDiscount.id);
+        console.log('Discount details:', {
+          id: customerDiscount.id,
+          customer: customerDiscount.customer,
+          coupon: customerDiscount.coupon
+        });
         
         // Then apply the discount to the invoice using the discount ID
-        await stripe.invoices.update(invoice.id, {
+        console.log('Updating invoice with discount:', invoice.id, 'Discount ID:', customerDiscount.id);
+        const updatedInvoice = await stripe.invoices.update(invoice.id, {
           discounts: [customerDiscount.id]
         });
         
         console.log('✓ Discount applied to invoice:', customerDiscount.id);
+        console.log('Updated invoice discounts:', updatedInvoice.discounts);
       } catch (discountError) {
-        console.error('Error applying discount to invoice:', discountError.message);
+        console.error('Error applying discount to invoice:', {
+          message: discountError.message,
+          code: discountError.code,
+          type: discountError.type
+        });
       }
     } else {
       console.log('Not applying discount. discountCode:', discountCode, 'discount:', discount);
@@ -197,16 +208,13 @@ export async function POST(req) {
       // Continue anyway - invoice was created
     }
 
-    // Step 6: Disable customer payment ability and remove payment link
+    // Step 6: Update invoice with statement descriptor only
     try {
       await stripe.invoices.update(invoice.id, {
-        payment_settings: {
-          save_default_payment_method: 'off'
-        },
         statement_descriptor: 'Pay via eTransfer'
       });
     } catch (err) {
-      console.error('Warning: Could not update payment settings:', err.message);
+      console.error('Warning: Could not update statement descriptor:', err.message);
       // Continue anyway - invoice was created
     }
 
