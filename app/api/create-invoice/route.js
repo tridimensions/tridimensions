@@ -70,6 +70,10 @@ export async function POST(req) {
   try {
     const { customer, items, subtotal, discount, discountCode, total } = await req.json();
 
+    console.log('=== CREATE INVOICE ===');
+    console.log('Received discountCode:', discountCode);
+    console.log('Received discount amount:', discount);
+
     // Validate input
     if (!customer || !customer.email || !items || items.length === 0) {
       return NextResponse.json(
@@ -156,6 +160,7 @@ export async function POST(req) {
 
     // Step 4b: Apply discount to invoice BEFORE finalizing
     if (discountCode && discount > 0) {
+      console.log('Applying discount:', { discountCode, discount, customerId: stripeCustomer.id });
       try {
         // First, create a discount linked to the customer using the coupon
         const customerDiscount = await stripe.discounts.create({
@@ -174,6 +179,8 @@ export async function POST(req) {
       } catch (discountError) {
         console.error('Error applying discount to invoice:', discountError.message);
       }
+    } else {
+      console.log('Not applying discount. discountCode:', discountCode, 'discount:', discount);
     }
 
     // Step 5: Finalize the invoice (instead of draft)
