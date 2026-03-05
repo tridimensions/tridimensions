@@ -170,7 +170,7 @@ export async function POST(req) {
     // Return success - invoice IS created even if finalization/email had issues
     return NextResponse.json({
       success: true,
-      message: 'Order created successfully! Your invoice has been finalized. Please complete payment via eTransfer to stephane@tridimensions.ca',
+      message: 'Once you submit your payment using the payment instructions, we will contact you to organize pick up or delivery of your order.',
       invoiceId: invoice.id,
       customerId: stripeCustomer.id,
       invoiceNumber: invoice.number || invoice.id
