@@ -344,19 +344,25 @@ const StripeCart = () => {
                       {cart.sort((a, b) => a.name.localeCompare(b.name)).map(item => (
                         <div
                           key={item.id}
-                          className="border border-slate-200 rounded-lg"
+                          className="border border-slate-200 rounded-lg overflow-hidden"
                         >
                           <div
-                            onClick={() => setExpandedCartItem(expandedCartItem === item.id ? null : item.id)}
-                            className="flex items-start justify-between p-4 cursor-pointer hover:bg-slate-50"
+                            onClick={() => {
+                              console.log('Clicked item:', item.id, 'Has description:', !!item.description);
+                              setExpandedCartItem(expandedCartItem === item.id ? null : item.id);
+                            }}
+                            className="flex items-start justify-between p-4 cursor-pointer hover:bg-blue-50 bg-white"
                           >
-                            <div className="flex-1">
+                            <div className="flex-1 min-w-0">
                               <h4 className="font-medium text-slate-900 text-sm">{item.name}</h4>
                               <p className="text-blue-600 font-semibold text-sm mt-1">
                                 ${(item.price / 100).toFixed(2)}
                               </p>
+                              {item.description && (
+                                <p className="text-xs text-slate-500 mt-1">Click to view details</p>
+                              )}
                             </div>
-                            <div className="flex items-center gap-2 ml-2">
+                            <div className="flex items-center gap-2 ml-2 flex-shrink-0">
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -390,8 +396,8 @@ const StripeCart = () => {
                             </div>
                           </div>
                           {expandedCartItem === item.id && item.description && (
-                            <div className="px-4 pb-4 bg-slate-50 border-t border-slate-200">
-                              <p className="text-sm text-slate-600">{item.description}</p>
+                            <div className="px-4 py-3 bg-blue-50 border-t border-slate-200">
+                              <p className="text-sm text-slate-700">{item.description}</p>
                             </div>
                           )}
                         </div>
