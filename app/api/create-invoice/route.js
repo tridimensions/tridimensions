@@ -161,13 +161,13 @@ export async function POST(req) {
         await stripe.invoices.update(invoice.id, {
           discounts: [
             {
-              coupon: discountCode
+              promotion_code: discountCode
             }
           ]
         });
       } catch (discountError) {
-        console.log('Could not apply coupon to invoice, adding as line item instead:', discountError.message);
-        // Fallback: add as line item if coupon doesn't apply
+        console.log('Could not apply promotion code to invoice, adding as line item instead:', discountError.message);
+        // Fallback: add as line item if promotion code doesn't apply
         await stripe.invoiceItems.create({
           customer: stripeCustomer.id,
           invoice: invoice.id,
