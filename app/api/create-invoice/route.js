@@ -68,6 +68,12 @@ export async function POST(req) {
       customer: stripeCustomer.id,
       description: `Order from TriDimensions - ${new Date().toLocaleDateString()}`,
       footer: 'Please send payment via eTransfer to: stephane@tridimensions.ca.  Once we receive your payment, we will contact you to set up pick up or delivery of your products.',
+      custom_fields: [
+        {
+          name: 'Payment Instructions',
+          value: 'Please send payment via eTransfer to stephane@tridimensions.ca. Once we receive your payment, we will contact you to set up pick up or delivery of your products.'
+        }
+      ],
       metadata: {
         order_source: 'TriDimensions Portal',
         discount_code: discountCode || 'none',
