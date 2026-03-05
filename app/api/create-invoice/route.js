@@ -160,7 +160,7 @@ export async function POST(req) {
 
     // Step 4b: Apply discount to invoice BEFORE finalizing
     if (discountCode && discount > 0) {
-      console.log('Applying discount:', { discountCode, discount, customerId: stripeCustomer.id });
+      console.log('Applying discount:', { discountCode, discount, invoiceId: invoice.id });
       try {
         // Search for the promotion code to find the underlying coupon ID
         const promoCodesList = await stripe.promotionCodes.list({
@@ -175,27 +175,19 @@ export async function POST(req) {
         const promoCode = promoCodesList.data[0];
         console.log('Promotion code found:', promoCode.code, 'Coupon:', promoCode.coupon.id);
         
-        // Create a discount using the COUPON ID from the promotion code
-        const customerDiscount = await stripe.discounts.create({
-          customer: stripeCustomer.id,
+        // Create a discount linked directly to the invoice with the coupon
+        const invoiceDiscount = await stripe.discounts.create({
+          invoice: invoice.id,
           coupon: promoCode.coupon.id
         });
         
-        console.log('✓ Discount created for customer:', customerDiscount.id);
+        console.log('✓ Discount created and applied to invoice:', invoiceDiscount.id);
         console.log('Discount details:', {
-          id: customerDiscount.id,
-          customer: customerDiscount.customer,
-          coupon: customerDiscount.coupon
+          id: invoiceDiscount.id,
+          invoice: invoiceDiscount.invoice,
+          coupon: invoiceDiscount.coupon.id,
+          source_type: invoiceDiscount.source.type
         });
-        
-        // Then apply the discount to the invoice using the discount ID
-        console.log('Updating invoice with discount:', invoice.id, 'Discount ID:', customerDiscount.id);
-        const updatedInvoice = await stripe.invoices.update(invoice.id, {
-          discounts: [customerDiscount.id]
-        });
-        
-        console.log('✓ Discount applied to invoice:', customerDiscount.id);
-        console.log('Updated invoice discounts:', updatedInvoice.discounts);
       } catch (discountError) {
         console.error('Error applying discount to invoice:', {
           message: discountError.message,
