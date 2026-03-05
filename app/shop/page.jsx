@@ -15,6 +15,7 @@ const StripeCart = () => {
   const [appliedDiscount, setAppliedDiscount] = useState(null);
   const [step, setStep] = useState('cart'); // 'cart' or 'checkout'
   const [successMessage, setSuccessMessage] = useState('');
+  const [addedProductId, setAddedProductId] = useState(null);
 
   const [customerData, setCustomerData] = useState({
     name: '',
@@ -72,6 +73,10 @@ const StripeCart = () => {
     } else {
       setCart([...cart, { ...product, quantity: 1 }]);
     }
+    
+    // Visual feedback: highlight the button briefly
+    setAddedProductId(product.id);
+    setTimeout(() => setAddedProductId(null), 600);
   };
 
   const updateQuantity = (productId, quantity) => {
@@ -292,10 +297,14 @@ const StripeCart = () => {
                             </span>
                             <button
                               onClick={() => addToCart(product)}
-                              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors duration-200 flex items-center gap-2"
+                              className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all duration-300 ${
+                                addedProductId === product.id
+                                  ? 'bg-green-500 text-white scale-105 shadow-lg'
+                                  : 'bg-blue-600 hover:bg-blue-700 text-white hover:scale-105 shadow-md'
+                              }`}
                             >
                               <Plus size={18} />
-                              Add
+                              {addedProductId === product.id ? 'Added!' : 'Add'}
                             </button>
                           </div>
                         </div>
