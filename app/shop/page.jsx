@@ -225,7 +225,7 @@ const StripeCart = () => {
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-3xl font-bold text-slate-900">Precision Hydration</h1>
-                <p className="text-slate-600 text-sm mt-1">Tri Dimensions Reseller Portal</p>
+                <p className="text-slate-600 text-sm mt-1">TriDimensions Reseller Portal</p>
               </div>
               <div className="flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-lg">
                 <ShoppingCart size={20} className="text-blue-600" />
