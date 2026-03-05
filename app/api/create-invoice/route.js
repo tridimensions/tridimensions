@@ -1,70 +1,7 @@
 import Stripe from 'stripe';
-import nodemailer from 'nodemailer';
 import { NextResponse } from 'next/server';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
-
-// Configure email transporter
-const emailTransporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  }
-});
-
-async function sendOrderConfirmationEmail(
-  email,
-  customerName,
-  items,
-  subtotal,
-  discount,
-  total,
-  invoiceId
-) {
-  try {
-    const itemsList = items
-      .map(item => `<li>${item.productName} - Qty: ${item.quantity}</li>`)
-      .join('');
-
-    const htmlContent = `
-      <h2>Order Confirmation</h2>
-      <p>Hi ${customerName},</p>
-      <p>Thank you for your order! Here's a summary:</p>
-      
-      <h3>Items:</h3>
-      <ul>
-        ${itemsList}
-      </ul>
-      
-      <h3>Order Total:</h3>
-      <p>Subtotal: $${(subtotal / 100).toFixed(2)}</p>
-      ${discount > 0 ? `<p>Discount: -$${(discount / 100).toFixed(2)}</p>` : ''}
-      <p><strong>Total: $${(total / 100).toFixed(2)}</strong></p>
-      
-      <h3>Payment Instructions:</h3>
-      <p>Please complete your payment via eTransfer to: <strong>stephane@tridimensions.ca</strong></p>
-      <p>Invoice ID: ${invoiceId}</p>
-      
-      <p>Thank you for your business!</p>
-      <p>TriDimensions</p>
-    `;
-
-    await emailTransporter.sendMail({
-      from: process.env.SMTP_FROM_EMAIL,
-      to: email,
-      subject: 'Order Confirmation - TriDimensions',
-      html: htmlContent
-    });
-
-    return true;
-  } catch (error) {
-    console.error('Error sending confirmation email:', error);
-    return false;
-  }
-}
 
 export async function POST(req) {
   try {
@@ -216,18 +153,14 @@ export async function POST(req) {
       // Continue anyway - invoice was created
     }
 
-    // Step 7: Send confirmation email
+    // Step 7: Send invoice via Stripe email
     try {
-      await sendOrderConfirmationEmail(
-        customer.email,
-        customer.name,
-        items,
-        subtotal,
-        discount,
-        total,
-        invoice.id
-      );
+      await stripe.invoices.sendInvoice(invoice.id);
+      console.log('✓ Invoice sent to customer via Stripe email');
     } catch (err) {
+      console.error('Warning: Could not send invoice email via Stripe:', err.message);
+      // Continue anyway - invoice was created
+    }
       console.error('Warning: Could not send email:', err.message);
       // Continue anyway - invoice was created, email is optional
     }
