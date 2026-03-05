@@ -16,6 +16,7 @@ const StripeCart = () => {
   const [step, setStep] = useState('cart'); // 'cart' or 'checkout'
   const [successMessage, setSuccessMessage] = useState('');
   const [addedProductId, setAddedProductId] = useState(null);
+  const [expandedCartItem, setExpandedCartItem] = useState(null);
 
   const [customerData, setCustomerData] = useState({
     name: '',
@@ -340,40 +341,59 @@ const StripeCart = () => {
                 ) : (
                   <>
                     <div className="space-y-4 mb-6 max-h-64 overflow-y-auto">
-                      {cart.map(item => (
+                      {cart.sort((a, b) => a.name.localeCompare(b.name)).map(item => (
                         <div
                           key={item.id}
-                          className="flex items-start justify-between border-b border-slate-200 pb-4"
+                          className="border border-slate-200 rounded-lg"
                         >
-                          <div className="flex-1">
-                            <h4 className="font-medium text-slate-900 text-sm">{item.name}</h4>
-                            <p className="text-blue-600 font-semibold text-sm mt-1">
-                              ${(item.price / 100).toFixed(2)}
-                            </p>
+                          <div
+                            onClick={() => setExpandedCartItem(expandedCartItem === item.id ? null : item.id)}
+                            className="flex items-start justify-between p-4 cursor-pointer hover:bg-slate-50"
+                          >
+                            <div className="flex-1">
+                              <h4 className="font-medium text-slate-900 text-sm">{item.name}</h4>
+                              <p className="text-blue-600 font-semibold text-sm mt-1">
+                                ${(item.price / 100).toFixed(2)}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 ml-2">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateQuantity(item.id, item.quantity - 1);
+                                }}
+                                className="p-1 hover:bg-slate-100 rounded"
+                              >
+                                <Minus size={16} className="text-slate-600" />
+                              </button>
+                              <span className="w-8 text-center font-medium text-slate-900">
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  updateQuantity(item.id, item.quantity + 1);
+                                }}
+                                className="p-1 hover:bg-slate-100 rounded"
+                              >
+                                <Plus size={16} className="text-slate-600" />
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeFromCart(item.id);
+                                }}
+                                className="ml-2 p-1 hover:bg-red-50 rounded text-red-600"
+                              >
+                                <X size={16} />
+                              </button>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 ml-2">
-                            <button
-                              onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                              className="p-1 hover:bg-slate-100 rounded"
-                            >
-                              <Minus size={16} className="text-slate-600" />
-                            </button>
-                            <span className="w-8 text-center font-medium text-slate-900">
-                              {item.quantity}
-                            </span>
-                            <button
-                              onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                              className="p-1 hover:bg-slate-100 rounded"
-                            >
-                              <Plus size={16} className="text-slate-600" />
-                            </button>
-                            <button
-                              onClick={() => removeFromCart(item.id)}
-                              className="ml-2 p-1 hover:bg-red-50 rounded text-red-600"
-                            >
-                              <X size={16} />
-                            </button>
-                          </div>
+                          {expandedCartItem === item.id && item.description && (
+                            <div className="px-4 pb-4 bg-slate-50 border-t border-slate-200">
+                              <p className="text-sm text-slate-600">{item.description}</p>
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
