@@ -119,22 +119,7 @@ export async function POST(req) {
       });
     }
 
-    // Add discount as a manual line item if applicable
-    if (discount > 0 && discountCode) {
-      invoiceLineItems.push({
-        price_data: {
-          currency: 'cad',
-          product_data: {
-            name: `Discount: ${discountCode}`,
-            type: 'service'
-          },
-          unit_amount: -Math.round(discount * 100)
-        },
-        quantity: 1
-      });
-    }
-
-    // Step 3: Create draft invoice
+    // Step 2: Prepare invoice line items (WITHOUT discount - will apply discount directly)
     // Note: We create the invoice but DO NOT send it via Stripe's sendInvoice()
     // This prevents the Stripe payment link from being sent to the customer
     // Instead, we send our own custom email with eTransfer payment instructions
@@ -165,6 +150,34 @@ export async function POST(req) {
           invoice: invoice.id,
           price: lineItem.price,
           quantity: lineItem.quantity
+        });
+      }
+    }
+
+    // Step 4b: Apply discount directly to invoice (instead of line item)
+    if (discountCode && discount > 0) {
+      try {
+        // Apply discount amount directly to invoice
+        await stripe.invoices.update(invoice.id, {
+          discount: {
+            coupon: discountCode
+          }
+        });
+      } catch (discountError) {
+        console.log('Could not apply coupon to invoice, adding as line item instead:', discountError.message);
+        // Fallback: add as line item if coupon doesn't apply
+        await stripe.invoiceItems.create({
+          customer: stripeCustomer.id,
+          invoice: invoice.id,
+          price_data: {
+            currency: 'cad',
+            product_data: {
+              name: `Discount: ${discountCode}`,
+              type: 'service'
+            },
+            unit_amount: -Math.round(discount * 100)
+          },
+          quantity: 1
         });
       }
     }
@@ -211,7 +224,7 @@ export async function POST(req) {
     // Return success - invoice IS created even if finalization/email had issues
     return NextResponse.json({
       success: true,
-      message: 'Order created successfully! Your invoice has been finalized. Once we have received your payment, we will contact you to arrange delivery or pick up.',
+      message: 'Order created successfully! Your invoice has been finalized. Please complete payment via eTransfer to stephane@tridimensions.ca',
       invoiceId: invoice.id,
       customerId: stripeCustomer.id,
       invoiceNumber: invoice.number || invoice.id
