@@ -89,7 +89,7 @@ export async function POST(req) {
         payment_instructions: 'Please send payment via eTransfer to stephane@tridimensions.ca'
       },
       collection_method: 'send_invoice',
-      days_until_due: 30,
+      days_until_due: 0,
       auto_advance: false
     });
 
