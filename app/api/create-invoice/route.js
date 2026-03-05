@@ -49,13 +49,13 @@ async function sendOrderConfirmationEmail(
       <p>Invoice ID: ${invoiceId}</p>
       
       <p>Thank you for your business!</p>
-      <p>Tri Dimensions</p>
+      <p>TriDimensions</p>
     `;
 
     await emailTransporter.sendMail({
       from: process.env.SMTP_FROM_EMAIL,
       to: email,
-      subject: 'Order Confirmation - Tri Dimensions',
+      subject: 'Order Confirmation - TriDimensions',
       html: htmlContent
     });
 
@@ -98,7 +98,7 @@ export async function POST(req) {
           country: 'CA'
         },
         metadata: {
-          company: 'Tri Dimensions'
+          company: 'TriDimensions'
         }
       });
     }
@@ -132,13 +132,14 @@ export async function POST(req) {
     // Step 3: Create draft invoice
     const invoice = await stripe.invoices.create({
       customer: stripeCustomer.id,
-      description: `Order from Tri Dimensions - ${new Date().toLocaleDateString()}`,
+      description: `Order from TriDimensions - ${new Date().toLocaleDateString()}`,
       metadata: {
-        order_source: 'Tri Dimensions Portal',
+        order_source: 'TriDimensions Portal',
         discount_code: discountCode || 'none'
       },
       collection_method: 'send_invoice',
-      days_until_due: 30
+      days_until_due: 30,
+      auto_advance: false
     });
 
     // Step 4: Add line items to invoice
@@ -160,7 +161,19 @@ export async function POST(req) {
       }
     }
 
-    // Step 5: Send confirmation email
+    // Step 5: Finalize the invoice (instead of draft)
+    await stripe.invoices.finalizeInvoice(invoice.id, {
+      auto_advance: false
+    });
+
+    // Step 6: Disable customer payment ability
+    await stripe.invoices.update(invoice.id, {
+      payment_settings: {
+        save_default_payment_method: 'off'
+      }
+    });
+
+    // Step 7: Send confirmation email
     await sendOrderConfirmationEmail(
       customer.email,
       customer.name,
@@ -173,7 +186,7 @@ export async function POST(req) {
 
     return NextResponse.json({
       success: true,
-      message: 'Order created successfully! Your draft invoice is ready. Please complete payment via eTransfer to stephane@tridimensions.ca',
+      message: 'Order created successfully! Your invoice has been finalized. Please complete payment via eTransfer to stephane@tridimensions.ca',
       invoiceId: invoice.id,
       customerId: stripeCustomer.id,
       invoiceNumber: invoice.number || invoice.id
