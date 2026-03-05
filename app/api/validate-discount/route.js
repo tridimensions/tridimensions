@@ -14,27 +14,42 @@ export async function POST(req) {
       );
     }
 
-    const coupons = await stripe.coupons.list({
-      limit: 100
-    });
+    try {
+      const coupons = await stripe.coupons.list({
+        limit: 100
+      });
 
-    const coupon = coupons.data.find(c => c.id.toUpperCase() === code.toUpperCase());
+      const coupon = coupons.data.find(c => c.id.toUpperCase() === code.toUpperCase());
 
-    if (!coupon || !coupon.valid) {
+      if (!coupon) {
+        return NextResponse.json(
+          { error: 'Discount code not found' },
+          { status: 404 }
+        );
+      }
+
+      if (!coupon.valid) {
+        return NextResponse.json(
+          { error: 'This discount code is no longer valid' },
+          { status: 400 }
+        );
+      }
+
+      return NextResponse.json({
+        discount: {
+          code: coupon.id,
+          type: coupon.percent_off ? 'percentage' : 'fixed',
+          value: coupon.percent_off || (coupon.amount_off / 100),
+          description: coupon.name
+        }
+      });
+    } catch (stripeError) {
+      console.error('Stripe error:', stripeError);
       return NextResponse.json(
-        { error: 'Discount code not found or expired' },
-        { status: 404 }
+        { error: 'Failed to validate discount code' },
+        { status: 500 }
       );
     }
-
-    return NextResponse.json({
-      discount: {
-        code: coupon.id,
-        type: coupon.percent_off ? 'percentage' : 'fixed',
-        value: coupon.percent_off || (coupon.amount_off / 100),
-        description: coupon.name
-      }
-    });
   } catch (error) {
     console.error('Error validating discount:', error);
     return NextResponse.json(
