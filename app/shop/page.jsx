@@ -22,6 +22,7 @@ const StripeCart = () => {
   const [customerData, setCustomerData] = useState({
     name: '',
     email: '',
+    phone: '',
     address: '',
     city: '',
     province: '',
@@ -158,8 +159,8 @@ const StripeCart = () => {
   };
 
   const validateCheckout = () => {
-    const { name, email, address, city, province, postalCode } = customerData;
-    if (!name || !email || !address || !city || !province || !postalCode) {
+    const { name, email, phone, address, city, province, postalCode } = customerData;
+    if (!name || !email || !phone || !address || !city || !province || !postalCode) {
       setError('Please fill in all required fields');
       return false;
     }
@@ -220,6 +221,7 @@ const StripeCart = () => {
       setCustomerData({
         name: '',
         email: customerEmail, // Keep email for confirmation display
+        phone: '',
         address: '',
         city: '',
         province: '',
@@ -557,6 +559,21 @@ const StripeCart = () => {
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="john@example.com"
+                    />
+                  </div>
+
+                  {/* Phone */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Phone Number *
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={customerData.phone}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="(555) 123-4567"
                     />
                   </div>
 
