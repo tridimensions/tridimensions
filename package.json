@@ -1,0 +1,27 @@
+{
+  "name": "tri-dimensions-cart",
+  "version": "1.0.0",
+  "description": "Stripe-integrated shopping cart for Tri Dimensions Precision Hydration reseller",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "^14.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "stripe": "^14.8.0",
+    "nodemailer": "^6.9.7",
+    "lucide-react": "^0.263.1"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.3.0",
+    "postcss": "^8.4.24",
+    "autoprefixer": "^10.4.14"
+  },
+  "engines": {
+    "node": "24.x"
+  }
+}
