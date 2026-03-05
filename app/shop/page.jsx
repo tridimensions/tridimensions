@@ -211,9 +211,13 @@ const StripeCart = () => {
       setStep('confirmation');
       setCart([]);
       setAppliedDiscount(null);
+      
+      // Store the email before clearing customerData so we can display it on confirmation
+      const customerEmail = customerData.email;
+      
       setCustomerData({
         name: '',
-        email: '',
+        email: customerEmail, // Keep email for confirmation display
         address: '',
         city: '',
         province: '',
@@ -682,16 +686,6 @@ const StripeCart = () => {
           <p className="text-sm text-slate-600 mb-6">
             A confirmation email has been sent to <span className="font-semibold">{customerData.email}</span>
           </p>
-
-          <button
-            onClick={() => {
-              setStep('cart');
-              setOrderSubmitted(false);
-            }}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors duration-200"
-          >
-            Continue Shopping
-          </button>
         </div>
       </div>
     );
