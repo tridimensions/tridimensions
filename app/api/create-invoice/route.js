@@ -175,18 +175,15 @@ export async function POST(req) {
         const promoCode = promoCodesList.data[0];
         console.log('Promotion code found:', promoCode.code, 'Coupon:', promoCode.coupon.id);
         
-        // Create a discount linked directly to the invoice with the coupon
-        const invoiceDiscount = await stripe.discounts.create({
-          invoice: invoice.id,
+        // Apply discount to invoice by updating it with the coupon
+        const updatedInvoice = await stripe.invoices.update(invoice.id, {
           coupon: promoCode.coupon.id
         });
         
-        console.log('✓ Discount created and applied to invoice:', invoiceDiscount.id);
-        console.log('Discount details:', {
-          id: invoiceDiscount.id,
-          invoice: invoiceDiscount.invoice,
-          coupon: invoiceDiscount.coupon.id,
-          source_type: invoiceDiscount.source.type
+        console.log('✓ Discount applied to invoice:', promoCode.coupon.id);
+        console.log('Invoice discount details:', {
+          invoice_id: updatedInvoice.id,
+          discount: updatedInvoice.discount
         });
       } catch (discountError) {
         console.error('Error applying discount to invoice:', {
