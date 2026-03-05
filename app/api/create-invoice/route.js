@@ -154,7 +154,7 @@ export async function POST(req) {
       }
     }
 
-    // Step 4b: Apply discount to invoice
+    // Step 4b: Apply discount to invoice BEFORE finalizing
     if (discountCode && discount > 0) {
       try {
         // First, create a discount linked to the customer using the coupon
