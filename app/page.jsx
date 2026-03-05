@@ -1,9 +1,12 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-
-const StripeCart = dynamic(() => import('./shop/page'), { ssr: false });
+import React from 'react';
+import StripeCart from './shop/page';
 
 export default function Home() {
-  return <StripeCart />;
+  return (
+    <div>
+      <StripeCart />
+    </div>
+  );
 }
