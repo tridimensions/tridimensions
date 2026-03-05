@@ -99,7 +99,7 @@ export async function POST(req) {
     if (discountCode && discount > 0) {
       console.log('Applying discount:', { discountCode, discount, invoiceId: invoice.id });
       try {
-        // Search for the promotion code to find the underlying coupon ID
+        // Search for the promotion code to find its ID
         const promoCodesList = await stripe.promotionCodes.list({
           code: discountCode,
           limit: 1
@@ -110,18 +110,23 @@ export async function POST(req) {
         }
         
         const promoCode = promoCodesList.data[0];
-        console.log('Promotion code found:', promoCode.code, 'Coupon:', promoCode.coupon.id);
+        console.log('Promotion code found:', {
+          code: promoCode.code,
+          promoCodeId: promoCode.id,
+          couponId: promoCode.coupon.id
+        });
         
-        // Apply discount to invoice by updating it with the coupon
+        // Apply discount to invoice using the PROMOTION CODE ID
         const updatedInvoice = await stripe.invoices.update(invoice.id, {
-          coupon: promoCode.coupon.id
+          discounts: [
+            {
+              promotion_code: promoCode.id
+            }
+          ]
         });
         
-        console.log('✓ Discount applied to invoice:', promoCode.coupon.id);
-        console.log('Invoice discount details:', {
-          invoice_id: updatedInvoice.id,
-          discount: updatedInvoice.discount
-        });
+        console.log('✓ Discount applied to invoice:', promoCode.id);
+        console.log('Invoice discount details:', updatedInvoice.discounts);
       } catch (discountError) {
         console.error('Error applying discount to invoice:', {
           message: discountError.message,
