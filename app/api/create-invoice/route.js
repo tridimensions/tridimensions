@@ -159,9 +159,11 @@ export async function POST(req) {
       try {
         // Apply discount amount directly to invoice
         await stripe.invoices.update(invoice.id, {
-          discount: {
-            coupon: discountCode
-          }
+          discounts: [
+            {
+              coupon: discountCode
+            }
+          ]
         });
       } catch (discountError) {
         console.log('Could not apply coupon to invoice, adding as line item instead:', discountError.message);
