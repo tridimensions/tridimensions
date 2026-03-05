@@ -162,8 +162,17 @@ export async function POST(req) {
     if (discountCode && discount > 0) {
       console.log('Applying discount:', { discountCode, discount, customerId: stripeCustomer.id });
       try {
-        // Get the promotion code to find the underlying coupon ID
-        const promoCode = await stripe.promotionCodes.retrieve(discountCode);
+        // Search for the promotion code to find the underlying coupon ID
+        const promoCodesList = await stripe.promotionCodes.list({
+          code: discountCode,
+          limit: 1
+        });
+        
+        if (promoCodesList.data.length === 0) {
+          throw new Error(`Promotion code not found: ${discountCode}`);
+        }
+        
+        const promoCode = promoCodesList.data[0];
         console.log('Promotion code found:', promoCode.code, 'Coupon:', promoCode.coupon.id);
         
         // Create a discount using the COUPON ID from the promotion code
