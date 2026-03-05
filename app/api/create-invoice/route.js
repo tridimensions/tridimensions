@@ -31,6 +31,7 @@ export async function POST(req) {
       // Update customer address if it has changed
       await stripe.customers.update(stripeCustomer.id, {
         name: customer.name,
+        phone: customer.phone,
         address: {
           line1: customer.address,
           city: customer.city,
@@ -40,11 +41,12 @@ export async function POST(req) {
         }
       });
       
-      console.log('✓ Updated existing customer address');
+      console.log('✓ Updated existing customer address and phone');
     } else {
       stripeCustomer = await stripe.customers.create({
         email: customer.email,
         name: customer.name,
+        phone: customer.phone,
         address: {
           line1: customer.address,
           city: customer.city,
