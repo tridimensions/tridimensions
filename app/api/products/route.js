@@ -37,8 +37,10 @@ export async function GET(req) {
       })
     );
 
-    // Filter out null values (products without prices)
-    const formattedProducts = productsWithPrices.filter(p => p !== null);
+    // Filter out null values AND performance test products
+    const formattedProducts = productsWithPrices
+      .filter(p => p !== null)
+      .filter(p => !p.name.toLowerCase().includes('performance test'));
 
     return NextResponse.json({ products: formattedProducts });
   } catch (error) {
