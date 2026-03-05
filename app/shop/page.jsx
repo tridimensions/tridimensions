@@ -266,11 +266,11 @@ const StripeCart = () => {
                       >
                         {/* Product Image */}
                         {product.image && (
-                          <div className="relative h-48 bg-slate-100 overflow-hidden">
+                          <div className="relative h-64 bg-slate-100 overflow-hidden flex items-center justify-center">
                             <img
                               src={product.image}
                               alt={product.name}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300"
                             />
                           </div>
                         )}
