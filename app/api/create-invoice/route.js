@@ -161,9 +161,6 @@ export async function POST(req) {
       console.error('Warning: Could not send invoice email via Stripe:', err.message);
       // Continue anyway - invoice was created
     }
-      console.error('Warning: Could not send email:', err.message);
-      // Continue anyway - invoice was created, email is optional
-    }
 
     // Return success - invoice IS created even if finalization/email had issues
     return NextResponse.json({
