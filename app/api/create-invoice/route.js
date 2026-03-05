@@ -67,16 +67,7 @@ export async function POST(req) {
     const invoice = await stripe.invoices.create({
       customer: stripeCustomer.id,
       description: `Order from TriDimensions - ${new Date().toLocaleDateString()}`,
-      custom_fields: [
-        {
-          name: 'Payment Method',
-          value: 'eTransfer'
-        },
-        {
-          name: 'Send eTransfer to',
-          value: 'stephane@tridimensions.ca'
-        }
-      ],
+      footer: 'Please send payment via eTransfer to: stephane@tridimensions.ca.  Once we receive your payment, we will contact you to set up pick up or delivery of your products.',
       metadata: {
         order_source: 'TriDimensions Portal',
         discount_code: discountCode || 'none',
