@@ -27,6 +27,20 @@ export async function POST(req) {
 
     if (existingCustomers.data.length > 0) {
       stripeCustomer = existingCustomers.data[0];
+      
+      // Update customer address if it has changed
+      await stripe.customers.update(stripeCustomer.id, {
+        name: customer.name,
+        address: {
+          line1: customer.address,
+          city: customer.city,
+          state: customer.province,
+          postal_code: customer.postalCode,
+          country: 'CA'
+        }
+      });
+      
+      console.log('✓ Updated existing customer address');
     } else {
       stripeCustomer = await stripe.customers.create({
         email: customer.email,
@@ -42,6 +56,8 @@ export async function POST(req) {
           company: 'TriDimensions'
         }
       });
+      
+      console.log('✓ Created new customer');
     }
 
     // Step 2: Prepare invoice line items
@@ -67,7 +83,6 @@ export async function POST(req) {
     const invoice = await stripe.invoices.create({
       customer: stripeCustomer.id,
       description: 'Send payment via eTransfer to stephane@tridimensions.ca. Once received, we will contact you to arrange pickup or delivery of your products.',
-      footer: 'Please send payment via eTransfer to: stephane@tridimensions.ca.  Once we receive your payment, we will contact you to set up pick up or delivery of your products.',
       metadata: {
         order_source: 'TriDimensions Portal',
         discount_code: discountCode || 'none',
