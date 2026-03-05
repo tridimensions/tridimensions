@@ -172,21 +172,7 @@ export async function POST(req) {
         
         console.log('✓ Discount applied to invoice:', customerDiscount.id);
       } catch (discountError) {
-        console.log('Could not apply discount to invoice:', discountError.message);
-        // Fallback: add as line item if discount creation fails
-        await stripe.invoiceItems.create({
-          customer: stripeCustomer.id,
-          invoice: invoice.id,
-          price_data: {
-            currency: 'cad',
-            product_data: {
-              name: `Discount: ${discountCode}`,
-              type: 'service'
-            },
-            unit_amount: -Math.round(discount * 100)
-          },
-          quantity: 1
-        });
+        console.error('Error applying discount to invoice:', discountError.message);
       }
     }
 
