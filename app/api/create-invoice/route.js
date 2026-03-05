@@ -162,10 +162,14 @@ export async function POST(req) {
     if (discountCode && discount > 0) {
       console.log('Applying discount:', { discountCode, discount, customerId: stripeCustomer.id });
       try {
-        // First, create a discount linked to the customer using the coupon
+        // Get the promotion code to find the underlying coupon ID
+        const promoCode = await stripe.promotionCodes.retrieve(discountCode);
+        console.log('Promotion code found:', promoCode.code, 'Coupon:', promoCode.coupon.id);
+        
+        // Create a discount using the COUPON ID from the promotion code
         const customerDiscount = await stripe.discounts.create({
           customer: stripeCustomer.id,
-          coupon: discountCode
+          coupon: promoCode.coupon.id
         });
         
         console.log('✓ Discount created for customer:', customerDiscount.id);
