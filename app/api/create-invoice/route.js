@@ -135,6 +135,9 @@ export async function POST(req) {
     }
 
     // Step 3: Create draft invoice
+    // Note: We create the invoice but DO NOT send it via Stripe's sendInvoice()
+    // This prevents the Stripe payment link from being sent to the customer
+    // Instead, we send our own custom email with eTransfer payment instructions
     const invoice = await stripe.invoices.create({
       customer: stripeCustomer.id,
       description: `Order from TriDimensions - ${new Date().toLocaleDateString()}`,
@@ -176,12 +179,13 @@ export async function POST(req) {
       // Continue anyway - invoice was created
     }
 
-    // Step 6: Disable customer payment ability
+    // Step 6: Disable customer payment ability and remove payment link
     try {
       await stripe.invoices.update(invoice.id, {
         payment_settings: {
           save_default_payment_method: 'off'
-        }
+        },
+        statement_descriptor: 'TriDimensions Order - Pay via eTransfer only'
       });
     } catch (err) {
       console.error('Warning: Could not update payment settings:', err.message);
