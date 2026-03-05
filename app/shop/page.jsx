@@ -17,6 +17,7 @@ const StripeCart = () => {
   const [successMessage, setSuccessMessage] = useState('');
   const [addedProductId, setAddedProductId] = useState(null);
   const [expandedCartItem, setExpandedCartItem] = useState(null);
+  const [expandedProduct, setExpandedProduct] = useState(null);
 
   const [customerData, setCustomerData] = useState({
     name: '',
@@ -295,14 +296,27 @@ const StripeCart = () => {
 
                         {/* Product Info */}
                         <div className="p-4">
-                          <h3 className="font-semibold text-slate-900 text-lg mb-2">
-                            {product.name}
-                          </h3>
-                          {product.description && (
-                            <p className="text-slate-600 text-sm mb-4 line-clamp-2">
-                              {product.description}
-                            </p>
-                          )}
+                          <div
+                            onClick={() => {
+                              console.log('Clicked product:', product.id, 'Has description:', !!product.description);
+                              setExpandedProduct(expandedProduct === product.id ? null : product.id);
+                            }}
+                            className={`cursor-pointer pb-4 ${product.description ? 'hover:text-blue-600' : ''}`}
+                          >
+                            <h3 className="font-semibold text-slate-900 text-lg mb-2">
+                              {product.name}
+                            </h3>
+                            {product.description && (
+                              <>
+                                <p className={`text-slate-600 text-sm mb-2 ${expandedProduct === product.id ? '' : 'line-clamp-2'}`}>
+                                  {product.description}
+                                </p>
+                                <p className="text-xs text-blue-600 font-medium">
+                                  {expandedProduct === product.id ? '▼ Click to hide details' : '▶ Click to view full details'}
+                                </p>
+                              </>
+                            )}
+                          </div>
 
                           <div className="flex items-center justify-between mt-4">
                             <span className="text-2xl font-bold text-blue-600">
