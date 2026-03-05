@@ -60,16 +60,27 @@ export async function POST(req) {
       });
     }
 
-    // Step 2: Prepare invoice line items (WITHOUT discount - will apply discount directly)
+    // Step 3: Create invoice with eTransfer payment instructions
     // Note: We create the invoice but DO NOT send it via Stripe's sendInvoice()
     // This prevents the Stripe payment link from being sent to the customer
-    // Instead, we send our own custom email with eTransfer payment instructions
+    // Instead, we send via Stripe's sendInvoice() which will include our custom fields
     const invoice = await stripe.invoices.create({
       customer: stripeCustomer.id,
       description: `Order from TriDimensions - ${new Date().toLocaleDateString()}`,
+      custom_fields: [
+        {
+          name: 'Payment Method',
+          value: 'eTransfer'
+        },
+        {
+          name: 'Send eTransfer to',
+          value: 'stephane@tridimensions.ca'
+        }
+      ],
       metadata: {
         order_source: 'TriDimensions Portal',
-        discount_code: discountCode || 'none'
+        discount_code: discountCode || 'none',
+        payment_instructions: 'Please send payment via eTransfer to stephane@tridimensions.ca'
       },
       collection_method: 'send_invoice',
       days_until_due: 30,
