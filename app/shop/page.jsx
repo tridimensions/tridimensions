@@ -277,7 +277,7 @@ const StripeCart = () => {
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    {products.map(product => (
+                    {products.sort((a, b) => a.name.localeCompare(b.name)).map(product => (
                       <div
                         key={product.id}
                         className="bg-white rounded-lg border border-slate-200 overflow-hidden hover:border-blue-300 hover:shadow-lg transition-all duration-300 group"
