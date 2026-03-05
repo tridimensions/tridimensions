@@ -17,66 +17,87 @@ export async function POST(req) {
     try {
       const couponCode = code.toUpperCase().trim();
       console.log('=== DISCOUNT VALIDATION ===');
-      console.log('Attempting to validate coupon:', couponCode);
-      console.log('STRIPE_SECRET_KEY exists:', !!process.env.STRIPE_SECRET_KEY);
+      console.log('Attempting to validate:', couponCode);
       
-      let coupon;
+      let discount = null;
       
+      // Method 1: Try Promotion Codes (most common in modern Stripe)
       try {
-        // Direct lookup is more reliable
-        console.log('Trying direct coupon lookup...');
-        coupon = await stripe.coupons.retrieve(couponCode);
-        console.log('✓ Coupon found via direct lookup:', coupon.id);
-      } catch (retrieveError) {
-        // If direct lookup fails, try listing all coupons
-        console.log('Direct lookup failed, error:', retrieveError.message);
-        console.log('Trying list method to find coupon...');
+        console.log('Trying Promotion Code lookup...');
+        const promoCode = await stripe.promotionCodes.retrieve(couponCode);
+        console.log('✓ Promotion code found:', promoCode.code);
         
-        const coupons = await stripe.coupons.list({
-          limit: 100
-        });
+        // Get the coupon details from the promotion code
+        const coupon = await stripe.coupons.retrieve(promoCode.coupon.id);
         
-        console.log('Total coupons in Stripe:', coupons.data.length);
-        console.log('Available coupon IDs:', coupons.data.map(c => c.id).join(', '));
+        discount = {
+          code: promoCode.code,
+          type: coupon.percent_off ? 'percentage' : 'fixed',
+          value: coupon.percent_off || (coupon.amount_off / 100),
+          description: coupon.name || promoCode.code
+        };
+      } catch (promoError) {
+        console.log('Promotion code not found, trying Coupon...');
         
-        coupon = coupons.data.find(c => c.id.toUpperCase() === couponCode);
-        
-        if (!coupon) {
-          console.log('✗ Coupon not found:', couponCode);
-          return NextResponse.json(
-            { error: 'Discount code not found' },
-            { status: 404 }
-          );
+        // Method 2: Try direct Coupon lookup (legacy)
+        try {
+          const coupon = await stripe.coupons.retrieve(couponCode);
+          console.log('✓ Coupon found:', coupon.id);
+          
+          discount = {
+            code: coupon.id,
+            type: coupon.percent_off ? 'percentage' : 'fixed',
+            value: coupon.percent_off || (coupon.amount_off / 100),
+            description: coupon.name
+          };
+        } catch (couponError) {
+          console.log('Coupon not found, trying Coupon list...');
+          
+          // Method 3: List all coupons and promotion codes
+          const coupons = await stripe.coupons.list({ limit: 100 });
+          const promoCodes = await stripe.promotionCodes.list({ limit: 100 });
+          
+          console.log('Available coupons:', coupons.data.map(c => c.id).join(', '));
+          console.log('Available promotion codes:', promoCodes.data.map(p => p.code).join(', '));
+          
+          // Try to find in coupons
+          const foundCoupon = coupons.data.find(c => c.id.toUpperCase() === couponCode);
+          if (foundCoupon) {
+            console.log('✓ Coupon found in list:', foundCoupon.id);
+            discount = {
+              code: foundCoupon.id,
+              type: foundCoupon.percent_off ? 'percentage' : 'fixed',
+              value: foundCoupon.percent_off || (foundCoupon.amount_off / 100),
+              description: foundCoupon.name
+            };
+          } else {
+            // Try to find in promotion codes
+            const foundPromo = promoCodes.data.find(p => p.code.toUpperCase() === couponCode);
+            if (foundPromo) {
+              console.log('✓ Promotion code found in list:', foundPromo.code);
+              const coupon = await stripe.coupons.retrieve(foundPromo.coupon.id);
+              discount = {
+                code: foundPromo.code,
+                type: coupon.percent_off ? 'percentage' : 'fixed',
+                value: coupon.percent_off || (coupon.amount_off / 100),
+                description: coupon.name || foundPromo.code
+              };
+            }
+          }
         }
-        
-        console.log('✓ Coupon found via list:', coupon.id);
       }
 
-      if (!coupon.valid) {
-        console.log('✗ Coupon found but not valid:', coupon.id);
+      if (!discount) {
+        console.log('✗ Discount code not found:', couponCode);
         return NextResponse.json(
-          { error: 'This discount code is no longer valid' },
-          { status: 400 }
+          { error: 'Discount code not found' },
+          { status: 404 }
         );
       }
 
-      console.log('✓ Coupon validated successfully:', coupon.id);
-      console.log('Coupon details:', {
-        id: coupon.id,
-        percent_off: coupon.percent_off,
-        amount_off: coupon.amount_off,
-        valid: coupon.valid,
-        name: coupon.name
-      });
+      console.log('✓ Discount validated successfully:', discount.code);
+      return NextResponse.json({ discount });
       
-      return NextResponse.json({
-        discount: {
-          code: coupon.id,
-          type: coupon.percent_off ? 'percentage' : 'fixed',
-          value: coupon.percent_off || (coupon.amount_off / 100),
-          description: coupon.name
-        }
-      });
     } catch (stripeError) {
       console.error('✗ Stripe error:', {
         message: stripeError.message,
