@@ -5,15 +5,23 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export async function GET(req) {
   try {
+    // Fetch products
     const products = await stripe.products.list({
       limit: 100,
       active: true,
-      expand: ['data.prices']
     });
 
-    const formattedProducts = products.data
-      .map(product => {
-        const price = product.prices?.[0];
+    // For each product, fetch its prices separately
+    const productsWithPrices = await Promise.all(
+      products.data.map(async (product) => {
+        // Fetch prices for this specific product
+        const prices = await stripe.prices.list({
+          product: product.id,
+          active: true,
+          limit: 1,
+        });
+
+        const price = prices.data[0];
         if (!price) return null;
 
         return {
@@ -21,12 +29,16 @@ export async function GET(req) {
           name: product.name,
           description: product.description,
           price: price.unit_amount,
+          currency: price.currency,
           image: product.images?.[0] || null,
           stripeProductId: product.id,
           stripePriceId: price.id
         };
       })
-      .filter(p => p !== null);
+    );
+
+    // Filter out null values (products without prices)
+    const formattedProducts = productsWithPrices.filter(p => p !== null);
 
     return NextResponse.json({ products: formattedProducts });
   } catch (error) {
