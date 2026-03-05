@@ -154,20 +154,26 @@ export async function POST(req) {
       }
     }
 
-    // Step 4b: Apply discount directly to invoice (instead of line item)
+    // Step 4b: Apply discount to invoice
     if (discountCode && discount > 0) {
       try {
-        // Apply discount amount directly to invoice
-        await stripe.invoices.update(invoice.id, {
-          discounts: [
-            {
-              promotion_code: discountCode
-            }
-          ]
+        // First, create a discount linked to the customer using the coupon
+        const customerDiscount = await stripe.discounts.create({
+          customer: stripeCustomer.id,
+          coupon: discountCode
         });
+        
+        console.log('✓ Discount created for customer:', customerDiscount.id);
+        
+        // Then apply the discount to the invoice using the discount ID
+        await stripe.invoices.update(invoice.id, {
+          discounts: [customerDiscount.id]
+        });
+        
+        console.log('✓ Discount applied to invoice:', customerDiscount.id);
       } catch (discountError) {
-        console.log('Could not apply promotion code to invoice, adding as line item instead:', discountError.message);
-        // Fallback: add as line item if promotion code doesn't apply
+        console.log('Could not apply discount to invoice:', discountError.message);
+        // Fallback: add as line item if discount creation fails
         await stripe.invoiceItems.create({
           customer: stripeCustomer.id,
           invoice: invoice.id,
