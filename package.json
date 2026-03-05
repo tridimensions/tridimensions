@@ -1,7 +1,7 @@
 {
   "name": "tri-dimensions-cart",
   "version": "1.0.0",
-  "description": "Stripe-integrated shopping cart for Tri Dimensions Precision Hydration reseller",
+  "description": "Stripe-integrated shopping cart for TriDimensions Precision Hydration reseller",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
