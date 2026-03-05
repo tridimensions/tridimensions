@@ -71,7 +71,7 @@ export async function POST(req) {
       custom_fields: [
         {
           name: 'Payment Instructions',
-          value: 'Please send payment via eTransfer to stephane@tridimensions.ca. Once we receive your payment, we will contact you to set up pick up or delivery of your products.'
+          value: 'Send payment via eTransfer to stephane@tridimensions.ca . Once received, we will contact you to arrange pickup or delivery of your products.'
         }
       ],
       metadata: {
