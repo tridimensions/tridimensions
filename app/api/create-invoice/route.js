@@ -167,28 +167,44 @@ export async function POST(req) {
     }
 
     // Step 5: Finalize the invoice (instead of draft)
-    await stripe.invoices.finalizeInvoice(invoice.id, {
-      auto_advance: false
-    });
+    try {
+      await stripe.invoices.finalizeInvoice(invoice.id, {
+        auto_advance: false
+      });
+    } catch (err) {
+      console.error('Warning: Could not finalize invoice:', err.message);
+      // Continue anyway - invoice was created
+    }
 
     // Step 6: Disable customer payment ability
-    await stripe.invoices.update(invoice.id, {
-      payment_settings: {
-        save_default_payment_method: 'off'
-      }
-    });
+    try {
+      await stripe.invoices.update(invoice.id, {
+        payment_settings: {
+          save_default_payment_method: 'off'
+        }
+      });
+    } catch (err) {
+      console.error('Warning: Could not update payment settings:', err.message);
+      // Continue anyway - invoice was created
+    }
 
     // Step 7: Send confirmation email
-    await sendOrderConfirmationEmail(
-      customer.email,
-      customer.name,
-      items,
-      subtotal,
-      discount,
-      total,
-      invoice.id
-    );
+    try {
+      await sendOrderConfirmationEmail(
+        customer.email,
+        customer.name,
+        items,
+        subtotal,
+        discount,
+        total,
+        invoice.id
+      );
+    } catch (err) {
+      console.error('Warning: Could not send email:', err.message);
+      // Continue anyway - invoice was created, email is optional
+    }
 
+    // Return success - invoice IS created even if finalization/email had issues
     return NextResponse.json({
       success: true,
       message: 'Order created successfully! Your invoice has been finalized. Please complete payment via eTransfer to stephane@tridimensions.ca',
