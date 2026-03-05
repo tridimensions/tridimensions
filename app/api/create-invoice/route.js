@@ -185,7 +185,7 @@ export async function POST(req) {
         payment_settings: {
           save_default_payment_method: 'off'
         },
-        statement_descriptor: 'TriDimensions Order - Pay via eTransfer only'
+        statement_descriptor: 'Pay via eTransfer'
       });
     } catch (err) {
       console.error('Warning: Could not update payment settings:', err.message);
