@@ -103,17 +103,21 @@ const StripeCart = () => {
 
     try {
       setDiscountError(null);
-      const response = await fetch(`${BACKEND_URL}/api/validate-discount`, {
+      const response = await fetch(`/api/validate-discount`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: discountCode.toUpperCase() })
       });
 
-      if (!response.ok) throw new Error('Invalid discount code');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Invalid discount code');
+      }
       const data = await response.json();
       setAppliedDiscount(data.discount);
       setDiscountCode('');
     } catch (err) {
+      console.error('Discount error:', err);
       setDiscountError(err.message || 'Invalid discount code');
     }
   };
@@ -190,13 +194,16 @@ const StripeCart = () => {
         total: calculateTotal()
       };
 
-      const response = await fetch(`${BACKEND_URL}/api/create-invoice`, {
+      const response = await fetch(`/api/create-invoice`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderData)
       });
 
-      if (!response.ok) throw new Error('Failed to create invoice');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create invoice');
+      }
 
       const result = await response.json();
       setSuccessMessage(result.message || 'Order created successfully');
