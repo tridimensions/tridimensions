@@ -214,6 +214,7 @@ const StripeCart = () => {
         country: 'Canada'
       });
     } catch (err) {
+      console.error('Checkout error:', err);
       setError(err.message || 'Failed to submit order. Please try again.');
     } finally {
       setSubmitting(false);
