@@ -264,6 +264,20 @@ const StripeCart = () => {
             </div>
           )}
 
+          {/* Informational Messages */}
+          <div className="mb-8 space-y-4">
+            <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <span className="font-semibold">💰 Unlock Your Savings:</span> Once you add your first item, you will be able to add your discount code to unlock your savings!
+              </p>
+            </div>
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800">
+                <span className="font-semibold">🚚 Fast Delivery:</span> For Burlington, Oakville and Milton, I aim to deliver your order within 48 hours. If you are outside those cities, I will contact you after your order to organize pick up in Burlington.
+              </p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Products */}
             <div className="lg:col-span-2">
