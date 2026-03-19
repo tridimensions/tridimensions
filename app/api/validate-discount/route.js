@@ -47,7 +47,7 @@ export async function POST(req) {
           discount = {
             code: coupon.id,
             type: coupon.percent_off ? 'percentage' : 'fixed',
-            value: coupon.percent_off || (coupon.amount_off / 100),
+            value: coupon.percent_off || coupon.amount_off,
             description: coupon.name
           };
         } catch (couponError) {
@@ -67,7 +67,7 @@ export async function POST(req) {
             discount = {
               code: foundCoupon.id,
               type: foundCoupon.percent_off ? 'percentage' : 'fixed',
-              value: foundCoupon.percent_off || (foundCoupon.amount_off / 100),
+              value: foundCoupon.percent_off || foundCoupon.amount_off,
               description: foundCoupon.name
             };
           } else {
@@ -79,7 +79,7 @@ export async function POST(req) {
               discount = {
                 code: foundPromo.code,
                 type: coupon.percent_off ? 'percentage' : 'fixed',
-                value: coupon.percent_off || (coupon.amount_off / 100),
+                value: coupon.percent_off || coupon.amount_off,
                 description: coupon.name || foundPromo.code
               };
             }
