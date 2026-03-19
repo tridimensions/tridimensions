@@ -104,6 +104,16 @@ const StripeCart = () => {
       return;
     }
 
+    // Check if discount code 202606 is only for Carb Only Drink Mix
+    const carb_only_price_id = 'price_1T3hAUFBi3T6vxeFm9L7sbib';
+    if (discountCode.toUpperCase() === '202606') {
+      const hasCarbs = cart.some(item => item.stripePriceId === carb_only_price_id);
+      if (!hasCarbs) {
+        setDiscountError('This discount code is only valid for "Mixes - Carb Only Drink Mix" product');
+        return;
+      }
+    }
+
     try {
       setDiscountError(null);
       const response = await fetch(`/api/validate-discount`, {
@@ -445,7 +455,7 @@ const StripeCart = () => {
                             <p className="text-xs text-slate-600 mt-1">
                               {appliedDiscount.type === 'percentage'
                                 ? `${appliedDiscount.value}% off`
-                                : `$${appliedDiscount.value.toFixed(2)} off`}
+                                : `$${(appliedDiscount.value / 100).toFixed(2)} off`}
                             </p>
                           </div>
                           <button
@@ -684,7 +694,7 @@ const StripeCart = () => {
                     <p className="text-xs text-green-700 mt-1">
                       {appliedDiscount.type === 'percentage'
                         ? `${appliedDiscount.value}% off`
-                        : `$${appliedDiscount.value.toFixed(2)} off`}
+                        : `$${(appliedDiscount.value / 100).toFixed(2)} off`}
                     </p>
                   </div>
                 )}
