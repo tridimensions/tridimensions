@@ -11,17 +11,24 @@ export async function GET(req) {
       active: true,
     });
 
-    // For each product, fetch its prices separately
-    const productsWithPrices = await Promise.all(
-      products.data.map(async (product) => {
-        // Fetch prices for this specific product
-        const prices = await stripe.prices.list({
-          product: product.id,
-          active: true,
-          limit: 1,
-        });
+    // Fetch all prices at once instead of per product
+    const prices = await stripe.prices.list({
+      limit: 100,
+      active: true,
+    });
 
-        const price = prices.data[0];
+    // Create a map of product IDs to prices
+    const pricesByProduct = {};
+    prices.data.forEach(price => {
+      if (price.product && !pricesByProduct[price.product]) {
+        pricesByProduct[price.product] = price;
+      }
+    });
+
+    // Build product list
+    const productsWithPrices = products.data
+      .map(product => {
+        const price = pricesByProduct[product.id];
         if (!price) return null;
 
         return {
@@ -35,14 +42,10 @@ export async function GET(req) {
           stripePriceId: price.id
         };
       })
-    );
-
-    // Filter out null values AND performance test products
-    const formattedProducts = productsWithPrices
       .filter(p => p !== null)
       .filter(p => !p.name.toLowerCase().includes('performance test'));
 
-    return NextResponse.json({ products: formattedProducts });
+    return NextResponse.json({ products: productsWithPrices });
   } catch (error) {
     console.error('Error fetching products:', error);
     return NextResponse.json(
